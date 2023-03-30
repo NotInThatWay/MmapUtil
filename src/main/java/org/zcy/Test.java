@@ -22,6 +22,8 @@ public class Test {
             SizeSplit sizeSplit = new SizeSplit(10);
             TimeSplit timeSplit = new TimeSplit(2);
             SingleSplit singleSplit = new SingleSplit("single");
+            FieldSplit fieldSplit = new FieldSplit("code");
+
 
             MmapUtil<Tick> mmap = new MmapUtil<>(directory, bufferSize, fileType);
             mmap.loadData(t1);
@@ -30,7 +32,7 @@ public class Test {
             mmap.loadData(t4);
 
             long start = System.nanoTime();
-            mmap.writeToFile(singleSplit);
+            mmap.writeToFile(fieldSplit);
             long end = System.nanoTime();
             System.out.println(end - start);
 
