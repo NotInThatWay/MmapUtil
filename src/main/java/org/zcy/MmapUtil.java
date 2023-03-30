@@ -81,7 +81,6 @@ public class MmapUtil<T> {
             String path = directory + fileName + "." + fileType;
             FileChannel fc = new RandomAccessFile(path, "rw").getChannel();
             String str = JSONObject.toJSONString(object) + ",";
-            System.out.println(str);
             // buffer 大小不足
             if (bufferSize < str.length())
                 throw new Exception("Buffer 大小不足！Object: " + str.length() + " > Buffer: " + bufferSize);
