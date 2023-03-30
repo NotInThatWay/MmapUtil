@@ -1,5 +1,11 @@
 package org.zcy;
 
+import org.zcy.read.rule.SizeSpan;
+import org.zcy.write.rule.FieldSplit;
+import org.zcy.write.rule.SingleSplit;
+import org.zcy.write.rule.SizeSplit;
+import org.zcy.write.rule.TimeSplit;
+
 public class Test {
     public static void main(String[] args) {
         String directory = "D://Tool//";
@@ -13,16 +19,19 @@ public class Test {
         t4 = new Tick("sh000123", System.nanoTime());
         t1.sp2 = 123;
         t2.sp2 = 321;
-        t3.sp2 = 999;
+        t3.sp2 = 11199;
         t4.sp2 = 100;
 
 
         try {
             // 建立划分规则
-            SizeSplit sizeSplit = new SizeSplit(10);
+            SizeSplit sizeSplit = new SizeSplit(1);
             TimeSplit timeSplit = new TimeSplit(2);
             SingleSplit singleSplit = new SingleSplit("single");
             FieldSplit fieldSplit = new FieldSplit("code");
+
+
+            SizeSpan sizeSpan = new SizeSpan(1, 400, 500);
 
 
             MmapUtil<Tick> mmap = new MmapUtil<>(directory, bufferSize, fileType);
@@ -32,9 +41,12 @@ public class Test {
             mmap.loadData(t4);
 
             long start = System.nanoTime();
-            mmap.writeToFile(fieldSplit);
+            mmap.writeToFile(sizeSplit);
             long end = System.nanoTime();
             System.out.println(end - start);
+
+
+            mmap.readFromFile(sizeSpan, Tick.class);
 
         } catch (Exception e) {
             throw new RuntimeException(e);

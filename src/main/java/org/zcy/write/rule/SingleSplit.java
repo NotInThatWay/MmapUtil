@@ -1,4 +1,4 @@
-package org.zcy;
+package org.zcy.write.rule;
 
 /**
  * 将对象写入一个文件中

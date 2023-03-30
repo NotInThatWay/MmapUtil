@@ -1,4 +1,4 @@
-package org.zcy;
+package org.zcy.write.rule;
 
 import java.text.SimpleDateFormat;
 

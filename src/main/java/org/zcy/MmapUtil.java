@@ -1,14 +1,19 @@
 package org.zcy;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.alibaba.fastjson.JSONObject;
+import org.zcy.read.rule.ReadRule;
+import org.zcy.write.rule.SplitRule;
 
 public class MmapUtil<T> {
     /**
@@ -93,7 +98,7 @@ public class MmapUtil<T> {
     }
 
 
-//    /**
+    //    /**
 //     * 通过内存映射读取磁盘中的对象
 //     *
 //     * @param queryName 文件划分的名称
@@ -102,27 +107,34 @@ public class MmapUtil<T> {
 //     * @return 包含所有读取到的对象的列表
 //     * @throws IOException 文件不存在或读取不成功时报错
 //     */
-//    public List<T> readFromFile(String queryName, int num, Class<T> cls) throws IOException {
-//        String path = directory + queryName + "." + fileType;   // 文件路径
-//        FileChannel fc = new RandomAccessFile(path, "r").getChannel();
-//
-//        // 读取大小判断，查询大小需小于等于文件大小
-//        long querySize = bufferSize * num;
-//        long fileSize = fc.size();
-//        long size = Math.min(querySize, fileSize);  // 查询大小与文件大小取最小值
-//        MappedByteBuffer buffer = reverse ?
-//                fc.map(FileChannel.MapMode.READ_ONLY, fileSize - size, size) :
-//                fc.map(FileChannel.MapMode.READ_ONLY, 0, size);
-//
-//        byte[] bytes = new byte[(int) size];
-//        buffer.get(bytes);
-//        StringBuffer sb = new StringBuffer("[");
-//        String content = new String(bytes);
-//        sb.append(content);
-//        sb.deleteCharAt(sb.length() - 1);
-//        sb.append("]");
-//        return JSONObject.parseArray(sb.toString(), cls);
-//    }
+    public Map<String, List<T>> readFromFile(ReadRule rule, Class<T> cls) throws IOException {
+        Map<String, List<T>> result = new ConcurrentHashMap<>();
+        List<String> queryNames = rule.getNames();
+        for (int i = 0; i < queryNames.size(); i++) {
+            String name = queryNames.get(i);
+            String path = directory + name + "." + fileType;   // 文件路径
+            if (!new File(path).exists()) continue;
+            FileChannel fc = new RandomAccessFile(path, "r").getChannel();
+
+            // 读取大小判断，查询大小需小于等于文件大小
+            long querySize = bufferSize * rule.getNum();
+            long fileSize = fc.size();
+            long size = Math.min(querySize, fileSize);  // 查询大小与文件大小取最小值
+            MappedByteBuffer buffer = rule.isReverse() ?
+                    fc.map(FileChannel.MapMode.READ_ONLY, fileSize - size, size) :
+                    fc.map(FileChannel.MapMode.READ_ONLY, 0, size);
+
+            byte[] bytes = new byte[(int) size];
+            buffer.get(bytes);
+            StringBuffer sb = new StringBuffer("[");
+            String content = new String(bytes);
+            sb.append(content);
+            sb.deleteCharAt(sb.length() - 1);
+            sb.append("]");
+            result.put(name, JSONObject.parseArray(sb.toString(), cls));
+        }
+        return result;
+    }
 
     /**
      * 初始化目录

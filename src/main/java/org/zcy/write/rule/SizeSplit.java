@@ -1,5 +1,4 @@
-package org.zcy;
-
+package org.zcy.write.rule;
 
 /**
  * 根据对象大小划分
