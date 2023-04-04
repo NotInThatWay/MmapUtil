@@ -1,4 +1,4 @@
-package org.zcy.read.rule;
+package mmaputil.read.rule;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -6,12 +6,14 @@ public class SizeSpan extends ReadRule {
     private int interval;
     private int lowerBound;
     private int upperBound;
+
     /**
      * 构造函数
-     * @param interval 大小间隔
+     *
+     * @param interval   大小间隔
      * @param lowerBound 最小值
      * @param upperBound 最大值
-     * @param num 每个文件读取对象的个数
+     * @param num        每个文件读取对象的个数
      */
     public SizeSpan(int interval, int lowerBound, int upperBound, int num) throws Exception {
         super(new ConcurrentLinkedQueue<>(), num);
@@ -29,14 +31,36 @@ public class SizeSpan extends ReadRule {
         this.upperBound = upperBound;
     }
 
-    public void setNum(int num) {
-        super.num = num;
-    }
-
     @Override
-    public void read(){
+    public void read() {
+        names.clear();
         for (int i = lowerBound; i <= upperBound; i += interval) {
             names.offer(Integer.toString(i));
         }
     }
+
+    public void setInterval(int interval) {
+        this.interval = interval;
+    }
+
+    public int getInterval() {
+        return interval;
+    }
+
+    public int getLowerBound() {
+        return lowerBound;
+    }
+
+    public int getUpperBound() {
+        return upperBound;
+    }
+
+    public void setLowerBound(int lowerBound) {
+        this.lowerBound = lowerBound;
+    }
+
+    public void setUpperBound(int upperBound) {
+        this.upperBound = upperBound;
+    }
+
 }

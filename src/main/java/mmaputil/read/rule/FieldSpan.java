@@ -1,4 +1,4 @@
-package org.zcy.read.rule;
+package mmaputil.read.rule;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -10,8 +10,14 @@ public class FieldSpan extends ReadRule{
         super(new ConcurrentLinkedQueue<>(), num);
         this.fieldName = fieldName;
     }
+
+    public FieldSpan(String fieldName){
+        super(new ConcurrentLinkedQueue<>(), Integer.MAX_VALUE);
+        this.fieldName = fieldName;
+    }
     @Override
     public void read() {
+        names.clear();
         names.offer(fieldName);
     }
 

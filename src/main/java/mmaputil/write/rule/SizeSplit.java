@@ -1,4 +1,4 @@
-package org.zcy.write.rule;
+package mmaputil.write.rule;
 
 /**
  * 根据对象大小划分

@@ -1,4 +1,4 @@
-package org.zcy.write.rule;
+package mmaputil.write.rule;
 
 /**
  * 文件划分规则的抽象类

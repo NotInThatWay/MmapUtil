@@ -1,25 +1,21 @@
-package org.zcy;
+package mmaputil;
 
 import com.alibaba.fastjson.JSONObject;
-import org.zcy.read.rule.ReadRule;
-import org.zcy.write.rule.SplitRule;
+import mmaputil.read.rule.ReadRule;
+import mmaputil.write.rule.SplitRule;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import sun.nio.ch.FileChannelImpl;
 
 
 public class MmapUtil<T> {
@@ -95,7 +91,7 @@ public class MmapUtil<T> {
     }
 
 
-    public void writeToFile(T object, SplitRule rule) throws Exception {
+    public synchronized void writeToFile(T object, SplitRule rule) throws Exception {
         initDirectory();    // 检查文件夹是否存在，不存在时创建
         rule.split(object);
         String path = directory + rule.getName() + "." + fileType;
@@ -108,9 +104,17 @@ public class MmapUtil<T> {
         MappedByteBuffer buffer = fc.map(FileChannel.MapMode.READ_WRITE, fc.size(), bufferSize);
         buffer.put(str.getBytes());
         fc.close();
+
+//        Method getCleanerMethod = buffer.getClass().getMethod("cleaner");
+//        getCleanerMethod.setAccessible(true);
+//        sun.misc.Unsafe cleaner =(sun.misc.Unsafe)getCleanerMethod.invoke(buffer,new Object[0]);
+//        cleaner.invokeCleaner(buffer);
+
 //        Method unmap = FileChannelImpl.class.getDeclaredMethod("unmap", MappedByteBuffer.class);
 //        unmap.setAccessible(true);
 //        unmap.invoke(FileChannelImpl.class, buffer);
+        long end = System.nanoTime();
+//        System.out.println(end-start);
     }
 
 

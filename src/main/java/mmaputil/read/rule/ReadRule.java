@@ -1,4 +1,4 @@
-package org.zcy.read.rule;
+package mmaputil.read.rule;
 
 import java.util.Queue;
 
@@ -59,5 +59,13 @@ public abstract class ReadRule {
 
     public void setNames(Queue<String> names) {
         this.names = names;
+    }
+
+    public void clearNames(){
+        names.clear();
+    }
+
+    public void addName(String name){
+        names.offer(name);
     }
 }

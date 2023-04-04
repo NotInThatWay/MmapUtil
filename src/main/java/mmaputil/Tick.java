@@ -1,4 +1,4 @@
-package org.zcy;
+package mmaputil;
 
 import lombok.Data;
 

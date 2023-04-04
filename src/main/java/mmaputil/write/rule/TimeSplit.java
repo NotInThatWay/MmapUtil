@@ -1,4 +1,4 @@
-package org.zcy.write.rule;
+package mmaputil.write.rule;
 
 import java.text.SimpleDateFormat;
 
@@ -8,7 +8,8 @@ import java.text.SimpleDateFormat;
 public class TimeSplit extends SplitRule {
     private SimpleDateFormat simpleDateFormat;
 
-    public TimeSplit(String timeFormat) {
+    public TimeSplit(String timeFormat) throws Exception {
+        if (!isFileNameValid(timeFormat)) throw new Exception("命名不合法");
         this.simpleDateFormat = new SimpleDateFormat(timeFormat);
     }
 
@@ -28,5 +29,9 @@ public class TimeSplit extends SplitRule {
 
     public void setFormat(String simpleDateFormat) {
         this.simpleDateFormat = new SimpleDateFormat(simpleDateFormat);
+    }
+
+    private boolean isFileNameValid(String name) {
+        return name.matches("^[a-zA-Z0-9._ -]+");
     }
 }

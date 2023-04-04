@@ -1,4 +1,4 @@
-package org.zcy.write.rule;
+package mmaputil.write.rule;
 
 /**
  * 通过对象类的字段进行划分
