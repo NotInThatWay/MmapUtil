@@ -1,15 +1,19 @@
 package org.zcy;
 
+import org.zcy.read.rule.ReadRule;
 import org.zcy.read.rule.SizeSpan;
 import org.zcy.write.rule.FieldSplit;
 import org.zcy.write.rule.SingleSplit;
 import org.zcy.write.rule.SizeSplit;
 import org.zcy.write.rule.TimeSplit;
 
+import java.math.BigInteger;
+import java.util.List;
+
 public class Test {
     public static void main(String[] args) {
         String directory = "D://Tool//";
-        long bufferSize = 700L;
+        long bufferSize = 600L;
         String fileType = "csv";
 
         Tick t1, t2, t3, t4;
@@ -20,33 +24,56 @@ public class Test {
         t1.sp2 = 123;
         t2.sp2 = 321;
         t3.sp2 = 11199;
-        t4.sp2 = 100;
+        t4.sp2 = 101110;
 
 
         try {
             // 建立划分规则
             SizeSplit sizeSplit = new SizeSplit(1);
-            TimeSplit timeSplit = new TimeSplit(2);
+            TimeSplit timeSplit = new TimeSplit("yyyy-MM-dd-HH-mm-ssZ");
             SingleSplit singleSplit = new SingleSplit("single");
             FieldSplit fieldSplit = new FieldSplit("code");
 
 
-            SizeSpan sizeSpan = new SizeSpan(1, 400, 500);
+            ReadRule sizeSpan = new SizeSpan(100, 480, 480);
 
 
             MmapUtil<Tick> mmap = new MmapUtil<>(directory, bufferSize, fileType);
-            mmap.loadData(t1);
-            mmap.loadData(t2);
-            mmap.loadData(t3);
-            mmap.loadData(t4);
-
+//            for(int i = 0 ; i < 10000; i++) {
+//                mmap.loadData(t1);
+//                mmap.loadData(t3);
+//                mmap.loadData(t4);
+//            }
             long start = System.nanoTime();
-            mmap.writeToFile(sizeSplit);
             long end = System.nanoTime();
-            System.out.println(end - start);
+
+            for(int i = 0; i< 300; i++) {
+                mmap.loadData(t1);
+////
+////
+////
+                mmap.writeToFile(sizeSplit);
+
+            }
+////            System.out.println(end - start);
 
 
-            mmap.readFromFile(sizeSpan, Tick.class);
+//            start = System.nanoTime();
+//            mmap.writeToFile(t3, timeSplit);
+//            end = System.nanoTime();
+//            System.out.println(end - start);
+
+//            mmap.setStoreChannels(false);
+
+            BigInteger b = new BigInteger("0");
+            for(int i = 0; i < 500; i++) {
+                start = System.nanoTime();
+                mmap.readFromFile(sizeSpan, Tick.class);
+                end = System.nanoTime();
+                b = b.add(new BigInteger(Long.toString(end - start)));
+            }
+
+            System.out.println(b.divide(new BigInteger("500")));
 
         } catch (Exception e) {
             throw new RuntimeException(e);

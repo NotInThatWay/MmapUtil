@@ -36,7 +36,7 @@ public class SizeSplit extends SplitRule {
      *
      * @param object 当前要划分的对象
      */
-    public void updateValue(Object object) {
+    private void updateValue(Object object) {
         size = cast(object.toString().length());
     }
 
@@ -61,15 +61,33 @@ public class SizeSplit extends SplitRule {
     }
 
     /**
-     * 返回划分完的文件命名
+     * 执行文件划分
      *
      * @param object 要划分的对象
-     * @return 文件命名
      */
     @Override
-    public String getName(Object object) {
+    public void split(Object object) {
         updateValue(object);
-        return Integer.toString(size);
+        name = Integer.toString(size);
     }
 
+    public int getSize() {
+        return size;
+    }
+
+    public boolean isDowncast() {
+        return downcast;
+    }
+
+    public int getInterval() {
+        return interval;
+    }
+
+    public void setInterval(int interval) {
+        this.interval = interval;
+    }
+
+    public void setDowncast(boolean downcast) {
+        this.downcast = downcast;
+    }
 }

@@ -4,18 +4,30 @@ package org.zcy.write.rule;
  * 将对象写入一个文件中
  */
 public class SingleSplit extends SplitRule {
+    /**
+     * 要写入的文件名称
+     */
+    private String fileName;
+
     public SingleSplit(String name) {
-        super.name = name;
+        this.fileName = name;
     }
 
     /**
-     * 返回划分完的文件命名
+     * 执行划分
      *
      * @param object 要划分的对象
-     * @return 划分后的文件命名
      */
     @Override
-    public String getName(Object object) {
-        return name;
+    public void split(Object object) {
+        name = fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public String getFileName() {
+        return fileName;
     }
 }

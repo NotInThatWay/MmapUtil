@@ -18,6 +18,7 @@ public class FieldSplit extends SplitRule {
      *
      * @param object 要划分的对象
      */
+    @Override
     public void split(Object object) {
         try {
             name = object.getClass().getDeclaredField(fieldName).get(object).toString();
@@ -26,15 +27,11 @@ public class FieldSplit extends SplitRule {
         }
     }
 
-    /**
-     * 返回划分完成的文件命名
-     *
-     * @param object 要划分的对象
-     * @return 文件命名
-     */
-    @Override
-    public String getName(Object object) {
-        split(object);
-        return name;
+    public String getFieldName() {
+        return fieldName;
+    }
+
+    public void setFieldName(String fieldName) {
+        this.fieldName = fieldName;
     }
 }

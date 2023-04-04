@@ -1,27 +1,32 @@
 package org.zcy.read.rule;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class SizeSpan extends ReadRule {
-
-    public SizeSpan(int interval, int lowerBound, int upperBound, int num) {
-        super(new LinkedList<>(), num, true);
-        setNames(interval, lowerBound, upperBound);
+    private int interval;
+    private int lowerBound;
+    private int upperBound;
+    /**
+     * 构造函数
+     * @param interval 大小间隔
+     * @param lowerBound 最小值
+     * @param upperBound 最大值
+     * @param num 每个文件读取对象的个数
+     */
+    public SizeSpan(int interval, int lowerBound, int upperBound, int num) throws Exception {
+        super(new ConcurrentLinkedQueue<>(), num);
+        if (interval <= 0) throw new Exception("间隔应大于0");
+        this.interval = interval;
+        this.lowerBound = lowerBound;
+        this.upperBound = upperBound;
     }
 
-    public SizeSpan(int interval, int lowerBound, int upperBound) {
-        super(new LinkedList<>(), Integer.MAX_VALUE, true);
-        setNames(interval, lowerBound, upperBound);
-    }
-
-
-    public void setNames(int interval, int lowerBound, int upperBound) {
-        List<String> result = new LinkedList<>();
-        for (int i = lowerBound; i <= upperBound; i += interval) {
-            result.add(Integer.toString(i));
-        }
-        names = result;
+    public SizeSpan(int interval, int lowerBound, int upperBound) throws Exception {
+        super(new ConcurrentLinkedQueue<>(), Integer.MAX_VALUE);
+        if (interval <= 0) throw new Exception("间隔应大于0");
+        this.interval = interval;
+        this.lowerBound = lowerBound;
+        this.upperBound = upperBound;
     }
 
     public void setNum(int num) {
@@ -29,17 +34,9 @@ public class SizeSpan extends ReadRule {
     }
 
     @Override
-    public List<String> getNames() {
-        return names;
-    }
-
-    @Override
-    public int getNum() {
-        return num;
-    }
-
-    @Override
-    public boolean isReverse() {
-        return reverse;
+    public void read(){
+        for (int i = lowerBound; i <= upperBound; i += interval) {
+            names.offer(Integer.toString(i));
+        }
     }
 }

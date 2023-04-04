@@ -9,11 +9,20 @@ public abstract class SplitRule {
      */
     public String name;
 
+
+    public abstract void split(Object object);
+
+
     /**
-     * 返回划分完的文件命名
+     * 获得划分后的文件命名
      *
-     * @param object 要划分的对象
      * @return 文件命名
      */
-    public abstract String getName(Object object);
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }
