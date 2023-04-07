@@ -133,6 +133,8 @@ public class MmapUtil<T> {
             FileChannel fc = new RandomAccessFile(path, "r").getChannel();
 
             // 读取大小判断，查询大小需小于等于文件大小
+            rule.setReverse(rule.getNum() < 0);
+
             long querySize = bufferSize * rule.getNum();
             long fileSize = fc.size();
             long size = Math.min(querySize, fileSize);  // 查询大小与文件大小取最小值
@@ -155,6 +157,12 @@ public class MmapUtil<T> {
         }
         return result;
     }
+
+
+
+
+
+
 
     /**
      * 初始化目录

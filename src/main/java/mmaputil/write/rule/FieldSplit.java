@@ -13,6 +13,7 @@ public class FieldSplit extends SplitRule {
         this.fieldName = fieldName;
     }
 
+
     /**
      * 更新划分完的文件命名
      *
