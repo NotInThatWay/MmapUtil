@@ -9,6 +9,11 @@ public class SingleSplit extends SplitRule {
      */
     private String fileName;
 
+    /**
+     * 将对象全部写入一个文件中的构建函数
+     *
+     * @param name 文件名称
+     */
     public SingleSplit(String name) {
         this.fileName = name;
     }
@@ -23,10 +28,20 @@ public class SingleSplit extends SplitRule {
         name = fileName;
     }
 
+    /**
+     * 设置文件名称
+     *
+     * @param fileName 文件名称
+     */
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
 
+    /**
+     * 获取文件名称
+     *
+     * @return 文件名称
+     */
     public String getFileName() {
         return fileName;
     }

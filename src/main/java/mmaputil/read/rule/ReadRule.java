@@ -8,64 +8,111 @@ public abstract class ReadRule {
      */
     public Queue<String> names;
     /**
+     * 每个文件的起点读取位置
+     */
+    public int index;
+    /**
      * 每个文件要读取的数据量
      */
-    public int num;
+    public int count;
+
     /**
-     * 顺序还是逆序读取
+     * 读取规则的构造函数
+     *
+     * @param names 划分后的文件名称
+     * @param index 每个文件的起点读取位置
+     * @param count 每个文件要读取的数据量
      */
-    public boolean reverse;
-
-    public ReadRule(Queue<String> names, int num, boolean reverse) {
+    public ReadRule(Queue<String> names, int index, int count) {
         this.names = names;
-        this.num = num;
-        this.reverse = reverse;
+        this.count = count;
+        this.index = index;
     }
 
-    public ReadRule(Queue<String> names, int num) {
+    /**
+     * 读取规则的构造函数，从头开始读取
+     *
+     * @param names 划分后的文件名称
+     * @param count 每个文件要读取的数据量
+     */
+    public ReadRule(Queue<String> names, int count) {
         this.names = names;
-        this.num = num;
-        this.reverse = true;
+        this.count = count;
+        this.index = 0;
     }
 
-
+    /**
+     * 读取符合规则的对象
+     */
     public abstract void read();
 
+    /**
+     * 获取所有要读取的文件的名称
+     *
+     * @return 文件名称
+     */
     public Queue<String> getNames() {
         return names;
     }
 
-
     /**
-     * 返回在每个划分文件中，要读取对象的数量
+     * 获取在每个划分文件中，要读取对象的数量
      *
      * @return 对象的数量
      */
-    public int getNum() {
-        return num;
+    public int getCount() {
+        return count;
     }
 
-    public boolean isReverse() {
-        return reverse;
+    /**
+     * 设置读取的起点位置
+     *
+     * @param index 起点位置
+     */
+    public void setIndex(int index) {
+        this.index = index;
     }
 
-    public void setReverse(Boolean reverse) {
-        this.reverse = reverse;
+    /**
+     * 获取读取的起点位置
+     *
+     * @return 起点位置
+     */
+    public int getIndex() {
+        return index;
     }
 
-    public void setNum(int num) {
-        this.num = num;
+    /**
+     * 设置读取的个数
+     *
+     * @param count 读取个数
+     */
+    public void setCount(int count) {
+        this.count = count;
     }
 
+    /**
+     * 设置要读取的文件名称
+     *
+     * @param names 文件名称
+     */
     public void setNames(Queue<String> names) {
         this.names = names;
     }
 
-    public void clearNames(){
+    /**
+     * 清除所有要读取的文件名称
+     */
+    public void clearNames() {
         names.clear();
     }
 
-    public void addName(String name){
+    /**
+     * 添加要读取的文件名称
+     *
+     * @param name 文件名称
+     */
+    public void addName(String name) {
         names.offer(name);
     }
 }

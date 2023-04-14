@@ -5,7 +5,7 @@ package mmaputil.write.rule;
  */
 public class SizeSplit extends SplitRule {
     /**
-     * 大小的间隔，最小为 1
+     * 间隔的大小，最小为 1
      */
     private int interval;
     /**
@@ -17,6 +17,12 @@ public class SizeSplit extends SplitRule {
      */
     private boolean downcast;
 
+    /**
+     * 根据对象大小划分的构建函数
+     *
+     * @param interval 划分间隔，最小为 1
+     * @throws Exception 间隔小于等于 0
+     */
     public SizeSplit(int interval) throws Exception {
         if (interval <= 0) throw new Exception("间隔应大于0");
         this.interval = interval;
@@ -24,6 +30,13 @@ public class SizeSplit extends SplitRule {
         this.downcast = true;
     }
 
+    /**
+     * 根据对象大小划分的构建函数，可设置是否向下取间隔
+     *
+     * @param interval 间隔大小，最小为 1
+     * @param downcast 是否向下取间隔
+     * @throws Exception 间隔小于等于 0
+     */
     public SizeSplit(int interval, boolean downcast) throws Exception {
         if (interval <= 0) throw new Exception("间隔应大于0");
         this.interval = interval;
@@ -71,22 +84,47 @@ public class SizeSplit extends SplitRule {
         name = Integer.toString(size);
     }
 
+    /**
+     * 获取对象大小
+     *
+     * @return 对象大小
+     */
     public int getSize() {
         return size;
     }
 
+    /**
+     * 是否为向下取间隔
+     *
+     * @return True 为是向下取间隔
+     */
     public boolean isDowncast() {
         return downcast;
     }
 
+    /**
+     * 获取当前的间隔
+     *
+     * @return 间隔的值
+     */
     public int getInterval() {
         return interval;
     }
 
+    /**
+     * 设置大小划分间隔
+     *
+     * @param interval 间隔的值
+     */
     public void setInterval(int interval) {
         this.interval = interval;
     }
 
+    /**
+     * 设置是否向下取间隔
+     *
+     * @param downcast True 为是向下取间隔
+     */
     public void setDowncast(boolean downcast) {
         this.downcast = downcast;
     }

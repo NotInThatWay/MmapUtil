@@ -5,16 +5,13 @@ import mmaputil.read.rule.ReadRule;
 import mmaputil.write.rule.SplitRule;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.lang.reflect.Method;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 
@@ -38,15 +35,18 @@ public class MmapUtil<T> {
      */
     private Queue<T> queue;
 
-    private Map<String, FileChannel> channels;
-
-
+    /**
+     * 工具类构造函数
+     *
+     * @param directory  文件存储路径
+     * @param bufferSize 缓存大小
+     * @param fileType   文件存储格式
+     */
     public MmapUtil(String directory, long bufferSize, String fileType) {
         this.directory = directory;
         this.bufferSize = bufferSize;
         this.fileType = fileType;
         queue = new ConcurrentLinkedQueue<>();
-        channels = new ConcurrentHashMap<>();
         initDirectory();
     }
 
@@ -78,10 +78,10 @@ public class MmapUtil<T> {
     }
 
     /**
-     * 内存映射写入文件
+     * 内存映射写入队列中的文件
      *
      * @param rule 文件划分规则
-     * @throws Exception 当无法将对象写入磁盘中时报错
+     * @throws Exception 无法将对象写入磁盘中时报错
      */
     public void writeToFile(SplitRule rule) throws Exception {
         while (!queue.isEmpty()) {    // 当队列中有正在被等待写入磁盘的对象
@@ -90,79 +90,110 @@ public class MmapUtil<T> {
         }
     }
 
-
+    /**
+     * 根据定义的写入规则，将单个对象写入磁盘文件
+     *
+     * @param object 要写入的对象
+     * @param rule   自定义的写入划分规则
+     * @throws Exception 无法将对象写入磁盘中时报错
+     */
     public synchronized void writeToFile(T object, SplitRule rule) throws Exception {
         initDirectory();    // 检查文件夹是否存在，不存在时创建
-        rule.split(object);
+        rule.split(object); // 对当前对象进行划分
         String path = directory + rule.getName() + "." + fileType;
-        FileChannel fc = new RandomAccessFile(path, "rw").getChannel();
+        try (RandomAccessFile file = new RandomAccessFile(path, "rw")) {
+            FileChannel fc = file.getChannel();
+            String str = JSONObject.toJSONString(object) + ",";
+            // Buffer 大小不足
+            if (bufferSize < str.length())
+                throw new Exception("Buffer 大小不足！对象: " + str.length() + " > Buffer: " + bufferSize);
 
-        String str = JSONObject.toJSONString(object) + ",";
-        // buffer 大小不足
-        if (bufferSize < str.length())
-            throw new Exception("Buffer 大小不足！Object: " + str.length() + " > Buffer: " + bufferSize);
-        MappedByteBuffer buffer = fc.map(FileChannel.MapMode.READ_WRITE, fc.size(), bufferSize);
-        buffer.put(str.getBytes());
-        fc.close();
-
-//        Method getCleanerMethod = buffer.getClass().getMethod("cleaner");
-//        getCleanerMethod.setAccessible(true);
-//        sun.misc.Unsafe cleaner =(sun.misc.Unsafe)getCleanerMethod.invoke(buffer,new Object[0]);
-//        cleaner.invokeCleaner(buffer);
-
-//        Method unmap = FileChannelImpl.class.getDeclaredMethod("unmap", MappedByteBuffer.class);
-//        unmap.setAccessible(true);
-//        unmap.invoke(FileChannelImpl.class, buffer);
-        long end = System.nanoTime();
-//        System.out.println(end-start);
+            MappedByteBuffer buffer = fc.map(FileChannel.MapMode.READ_WRITE, fc.size(), bufferSize);
+            buffer.put(str.getBytes());
+            buffer.force(); // 刷盘
+            fc.close();
+        }
     }
 
-
+    /**
+     * 从磁盘目录的所有文件中，读取符合条件的对象
+     *
+     * @param rule 自定义的读取规则
+     * @param cls  读取对象的类别
+     * @return 包含所有读取对象的列表
+     * @throws Exception 无法读取到对象
+     */
     public List<List<T>> readFromFile(ReadRule rule, Class<T> cls) throws Exception {
         List<List<T>> result = new LinkedList<>();
-        rule.read();
         Queue<String> queryNames = rule.getNames();
-//        Method unmap = FileChannelImpl.class.getDeclaredMethod("unmap", MappedByteBuffer.class);
-//        unmap.setAccessible(true);
 
         while (!queryNames.isEmpty()) {
             String name = queryNames.poll();
             String path = directory + name + "." + fileType;   // 文件路径
             if (!new File(path).exists()) continue;
 
-            FileChannel fc = new RandomAccessFile(path, "r").getChannel();
+            result.add(readFromFile(path, rule, cls));
+        }
+        return result;
+    }
 
+    /**
+     * 从磁盘的规定文件中，读取所有符合条件的对象
+     *
+     * @param fileName 要读取的文件名称
+     * @param rule     自定义的读取规则
+     * @param cls      读取对象的类别
+     * @return 包含所有读取对象的列表
+     * @throws Exception 无法读取到对象
+     */
+    public List<T> readFromFile(String fileName, ReadRule rule, Class<T> cls) throws Exception {
+        String path = directory + fileName + "." + fileType;   // 文件路径
+        if (!new File(path).exists()) throw new Exception("文件不存在");
+        List<T> result;
+        try (RandomAccessFile file = new RandomAccessFile(path, "r")) {
+            FileChannel fc = file.getChannel();
             // 读取大小判断，查询大小需小于等于文件大小
-            rule.setReverse(rule.getNum() < 0);
-
-            long querySize = bufferSize * rule.getNum();
+            int count = rule.getCount();
+            int index = rule.getIndex();
             long fileSize = fc.size();
-            long size = Math.min(querySize, fileSize);  // 查询大小与文件大小取最小值
-            MappedByteBuffer buffer = rule.isReverse() ?
-                    fc.map(FileChannel.MapMode.READ_ONLY, fileSize - size, size) :
-                    fc.map(FileChannel.MapMode.READ_ONLY, 0, size);
+            long size, start;
+
+            if (Math.abs(index) * bufferSize > fileSize) return new ArrayList<>();
+
+            if (count >= 0) {    // 向后数
+                if (index >= 0) {    // 从最早数据开始看
+                    start = Math.min(fileSize, index * bufferSize);
+                } else {    // 从最新的数据开始看
+                    start = Math.max(0, fileSize + index * bufferSize);
+                }
+                size = Math.min(fileSize - start, count * bufferSize);
+            } else {    // 向前数
+                if (index >= 0) { // 从最早数据开始看
+                    start = Math.max(0, (index + count) * bufferSize);
+                    size = Math.min(-count, index) * bufferSize;
+                } else { // 从最新的数据开始看
+                    start = Math.max(0, fileSize + (index + count + 1) * bufferSize);
+                    size = Math.min(fileSize - start, -count * bufferSize);
+                }
+            }
+
+            MappedByteBuffer buffer = fc.map(FileChannel.MapMode.READ_ONLY, start, size);
 
             byte[] bytes = new byte[(int) size];
-
             buffer.get(bytes);
 
+            // 反序列化
             StringBuffer sb = new StringBuffer("[");
             String content = new String(bytes);
             sb.append(content);
             sb.deleteCharAt(sb.length() - 1);
             sb.append("]");
-            result.add(JSONObject.parseArray(sb.toString(), cls));
+
+            result = JSONObject.parseArray(sb.toString(), cls);
             fc.close();
-//            unmap.invoke(FileChannelImpl.class, buffer);
         }
         return result;
     }
-
-
-
-
-
-
 
     /**
      * 初始化目录
@@ -172,18 +203,6 @@ public class MmapUtil<T> {
         if (!dir.exists()) {
             dir.mkdirs();
         }
-    }
-
-
-    public int getChannelMapSize() {
-        return channels.size();
-    }
-
-    public void clearChannelMap() throws IOException {
-        for (FileChannel fc : channels.values()) {
-            fc.close();
-        }
-        channels.clear();
     }
 
     /**
@@ -213,5 +232,29 @@ public class MmapUtil<T> {
         this.fileType = fileType;
     }
 
+    /**
+     * 更新要写入磁盘的对象的队列
+     *
+     * @param queue 新的对象队列
+     */
+    public void setQueue(Queue<T> queue) {
+        this.queue = queue;
+    }
+
+    /**
+     * 获取要写入磁盘的对象的队列
+     *
+     * @return 对象的队列
+     */
+    public Queue<T> getQueue() {
+        return queue;
+    }
+
+    /**
+     * 清空要写入磁盘的对象的队列
+     */
+    public void clearQueue() {
+        queue.clear();
+    }
 }
 
