@@ -1,1 +1,1 @@
-# Utilize Java Mmap to perform memory-map I/O with self-defined read and write rules.
+# Utilize Java Mmap to perform memory-map I/O with expandable read and write rules.
